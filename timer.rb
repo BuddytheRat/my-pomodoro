@@ -2,7 +2,11 @@ class Timer
   require 'win32/sound'
   include Win32
 
-  def initialize(minutes)
+  def initialize(minutes, **args)
+    args[:warning] ||= false;
+
+    @warning = args[:warning]
+
     @minutes = minutes
     @seconds = @minutes * 60
 
@@ -19,10 +23,18 @@ class Timer
     Thread.new {
       while time_remains? && running?
         @current_time = Time.now if !@paused
+        if @warning && minutes_left <= 5.0
+          Sound.play('warning.wav')
+          @warning = false
+        end
         sleep 0.2
       end
       time_up if running?
     }
+  end
+
+  def minutes_left
+    (@end_time - @current_time) / 60
   end
 
   def time_remains?

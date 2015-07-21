@@ -14,8 +14,8 @@ Current Features:
 - Keep track of Pomodoros completed.
 - Keep track of breaks taken.
 - Enter in number of hours. Automatically divide into work and break periods with timers for each.
+- 5 minute break period for each pomodoro session. (5 minute warning sound.)
 
 Planned Features:
-- 5 minute break period for each pomodoro session.
 - Variable length breaks.
 - GUI

@@ -11,43 +11,44 @@ class Pomodoro
     @break_sessions = ((available_hours - work_hours) / 0.5).to_i
     @breaks_completed = 0
     @running = false
-    @on_break = false
+    @is_break = false
 
     run
   end
 
   def get_input(**args)
-    args[:greater_than] ||= 0
+    args[:greater_than] ||= 1
     input = gets.chomp.to_i
     error = false
-    if !input.integer?
+    if input < args[:greater_than]
         error = true
-        puts 'Must be an integer.'
-    elsif input <= args[:greater_than]
-        error = true
-        puts "Must be greater than #{args[:greater_than]}."
+        puts "Must be a number equal to or greater than #{args[:greater_than]}."
     end
     input = get_input if error
     input
   end
 
   def new_session(minutes, **args)
-    args[:break] ||= false
-    @timer = Timer.new(minutes)
+    args[:is_break] ||= false
+    args[:warning] ||= false
+    @timer = Timer.new(minutes, warning: args[:warning])
     @timer.start
-    @on_break = args[:break]
+    @is_break = args[:is_break]
     @running = true
   end
 
   def sessions_string(sessions, completed)
-    ("[x]" * completed) + ("[ ]" * (sessions - completed))
+    completed_string = ("[x]" * ([completed, sessions].min))
+    uncompleted_string = ("[ ]" * ([sessions - completed, 0].max))
+    excess_string = (" x " * ([completed - sessions, 0].max))
+    completed_string + uncompleted_string + excess_string
   end
 
   def display_session_status
     puts "Sessions:"
     puts sessions_string(@sessions, @sessions_completed)
-    puts "Breaks:"
-    puts sessions_string(@break_sessions, @breaks_completed)
+    puts "Breaks:" if @break_sessions > 0
+    puts sessions_string(@break_sessions, @breaks_completed) if @break_sessions > 0
   end
 
   def run
@@ -58,11 +59,11 @@ class Pomodoro
       if @running
         if !@timer.running?
           @running = false
-          @on_break ? @breaks_completed += 1 : @sessions_completed += 1
+          @is_break ? @breaks_completed += 1 : @sessions_completed += 1
           next
         end
         puts
-        puts @timer.time_to_s + ' | ' + @timer.percent
+        puts @timer.time_to_s
         #### TIMER CONTROLS ####
         @timer.time_up if key == 's'.ord && @timer.running?
         @timer.pause if key == 'p'.ord && @timer.running?
@@ -73,15 +74,15 @@ class Pomodoro
         puts "Press 's' to remove completed session. Press 'b' to remove completed break."
         puts "Hold shift to add, instead."
         #### SESSION CONTROLS ####
-        @sessions_completed = [@sessions_completed - 1, 0].max if key == 's'.ord
-        @sessions_completed = [@sessions_completed + 1, @sessions].min if key == 'S'.ord 
-        @breaks_completed = [@breaks_completed - 1, 0].max if key == 'b'.ord
-        @breaks_completed = [@breaks_completed + 1, @break_sessions].min if key == 'B'.ord
-        new_session(30, :break => true) if key == '1'.ord
-        new_session(30) if key == '2'.ord
-        next if key
+        new_session(30, is_break: true) if key == '1'.ord # New Break
+        new_session(30, warning: true) if key == '2'.ord  # New Session
       end
-      sleep 0.1
+      @sessions_completed = [@sessions_completed - 1, 0].max if key == 's'.ord
+      @sessions_completed = @sessions_completed + 1 if key == 'S'.ord 
+      @breaks_completed = [@breaks_completed - 1, 0].max if key == 'b'.ord
+      @breaks_completed = @breaks_completed + 1 if key == 'B'.ord
+      next if key
+      sleep 0.2
     end
   end
 end
