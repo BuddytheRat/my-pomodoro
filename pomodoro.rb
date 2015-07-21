@@ -1,53 +1,89 @@
-class Timer
-  require 'win32/sound'
-  include Win32
-
-  def initialize(minutes)
-    @minutes = minutes
-    @seconds = @minutes * 60
+class Pomodoro
+  require './timer'
+  require './getkey'
+	def initialize
+    puts '# of hours to work:'
+    work_hours = get_input
+    puts '# of hours available:'
+    available_hours = get_input(greater_than: work_hours)
+    @sessions = (work_hours / 0.5).to_i
+    @sessions_completed = 0
+    @break_sessions = ((available_hours - work_hours) / 0.5).to_i
+    @breaks_completed = 0
     @running = false
-    @start_time = Time.new
-    @end_time = Time.new
+    @on_break = false
+
+    run
   end
 
-  def start
-    @start_time = Time.now
-    @end_time = @start_time + @seconds
+  def get_input(**args)
+    args[:greater_than] ||= 0
+    input = gets.chomp.to_i
+    error = false
+    if !input.integer?
+        error = true
+        puts 'Must be an integer.'
+    elsif input <= args[:greater_than]
+        error = true
+        puts "Must be greater than #{args[:greater_than]}."
+    end
+    input = get_input if error
+    input
+  end
+
+  def new_session(minutes, **args)
+    args[:break] ||= false
+    @timer = Timer.new(minutes)
+    @timer.start
+    @on_break = args[:break]
     @running = true
-    Thread.new {
-      while Time.now < @end_time && @running
-        sleep 1
-        system('cls')
-        puts time_to_s + ' | ' + percent
+  end
+
+  def sessions_string(sessions, completed)
+    ("[x]" * completed) + ("[ ]" * (sessions - completed))
+  end
+
+  def display_session_status
+    puts "Sessions:"
+    puts sessions_string(@sessions, @sessions_completed)
+    puts "Breaks:"
+    puts sessions_string(@break_sessions, @breaks_completed)
+  end
+
+  def run
+    loop do
+      key = GetKey.getkey
+      system('cls')
+      display_session_status
+      if @running
+        if !@timer.running?
+          @running = false
+          @on_break ? @breaks_completed += 1 : @sessions_completed += 1
+          next
+        end
+        puts
+        puts @timer.time_to_s + ' | ' + @timer.percent
+        #### TIMER CONTROLS ####
+        @timer.time_up if key == 's'.ord && @timer.running?
+        @timer.pause if key == 'p'.ord && @timer.running?
+        @timer.start if key == 'r'.ord && @timer.paused?
+        next if key
+      else
+        puts "Press '1' for break. Press '2' for pomodoro."
+        puts "Press 's' to remove completed session. Press 'b' to remove completed break."
+        puts "Hold shift to add, instead."
+        #### SESSION CONTROLS ####
+        @sessions_completed = [@sessions_completed - 1, 0].max if key == 's'.ord
+        @sessions_completed = [@sessions_completed + 1, @sessions].min if key == 'S'.ord 
+        @breaks_completed = [@breaks_completed - 1, 0].max if key == 'b'.ord
+        @breaks_completed = [@breaks_completed + 1, @break_sessions].min if key == 'B'.ord
+        new_session(30, :break => true) if key == '1'.ord
+        new_session(30) if key == '2'.ord
+        next if key
       end
-      time_up
-    }
-  end
-
-  def time_to_s
-    minutes = (((@end_time - Time.now) / 60) % 60).to_i.to_s.rjust(2, '0')
-    seconds = ((@end_time - Time.now) % 60).to_i.to_s.rjust(2, '0')
-    "#{minutes}:#{seconds}"
-  end    
-
-  def percent
-    "#{((Time.now - @start_time)/(@end_time - @start_time)*100).to_i}%"
-  end
-
-  def time_up
-    system('cls')
-    puts "It's Over!"
-    Sound.play('alarm.wav')
-    @running = false
-  end
-  
-  def running?
-    @running
+      sleep 0.1
+    end
   end
 end
 
-timer = Timer.new(0.2)
-timer.start
-while timer.running?
-  
-end
+pom = Pomodoro.new()

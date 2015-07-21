@@ -5,9 +5,9 @@ class Timer
   def initialize(minutes)
     @minutes = minutes
     @seconds = @minutes * 60
-    @running = false
 
     @start_time = Time.new
+    @current_time = Time.new
     @end_time = Time.new
   end
 
@@ -17,23 +17,21 @@ class Timer
     @running = true
     @paused = false
     Thread.new {
-      while time_remains? && @running
-        # Countdown
-        system('cls')
-        puts time_to_s
-        sleep 1
+      while time_remains? && running?
+        @current_time = Time.now if !@paused
+        sleep 0.2
       end
-      time_up unless @paused
+      time_up if running?
     }
   end
 
   def time_remains?
-    Time.now < @end_time
+    @current_time < @end_time
   end
 
   def time_to_s
-    minutes = (((@end_time - Time.now) / 60) % 60).to_i.to_s.rjust(2, '0')
-    seconds = ((@end_time - Time.now) % 60).to_i.to_s.rjust(2, '0')
+    minutes = (((@end_time - @current_time) / 60) % 60).to_i.to_s.rjust(2, '0')
+    seconds = ((@end_time - @current_time) % 60).to_i.to_s.rjust(2, '0')
     "#{minutes}:#{seconds}"
   end    
 
@@ -42,14 +40,12 @@ class Timer
   end
 
   def time_up
-    #system('cls')
     puts "It's Over!"
     Sound.play('alarm.wav')
     @running = false
   end
 
   def pause
-    @running = false
     @paused = true
     @seconds = (@end_time - Time.now)
   end
@@ -64,12 +60,3 @@ class Timer
 end
 
 require './getkey'
-
-timer = Timer.new(2)
-timer.start
-while timer.running?
-  key = GetKey.getkey
-  timer.time_up if key == 's'.ord
-  timer.pause if key == 'p'.ord
-  timer.start if key == 'r'.ord && timer.paused?
-end
