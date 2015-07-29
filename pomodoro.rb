@@ -1,6 +1,7 @@
 class Pomodoro
   require './timer'
   require './getkey'
+  require './timesheet'
 	def initialize
     puts '# of hours to work:'
     work_hours = get_input
