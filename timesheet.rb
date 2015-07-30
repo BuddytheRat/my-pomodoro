@@ -26,11 +26,16 @@ class TimeSheet
     sessions
   end
 
-  def TimeSheet.break_time
-    break_time = 0
-    @@timesheets.values.each { |v| break_time += v.break_time }
-    break_time
+  def break_time
+    time_to_s(@break_time)
   end
+
+  def time_to_s(seconds_float)
+    seconds = (seconds_float % 60).to_i.to_s.rjust(2, '0')
+    minutes = ((seconds_float / 60) % 60).to_i.to_s.rjust(2, '0')
+    hours   = ((seconds_float / 3600) % 60).to_i.to_s.rjust(2, '0')
+    "#{hours}:#{minutes}:#{seconds}"
+  end 
 
   def TimeSheet.today
     @@timesheets[Time.now.strftime('%m-%d-%y')]

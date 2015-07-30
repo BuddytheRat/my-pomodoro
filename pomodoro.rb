@@ -36,7 +36,7 @@ class Pomodoro
     puts Time.now.strftime('%A, %-d' + ordinal[0] + ' of %B')
     puts
     puts "Sessions: #{@timesheet.sessions}, Total: #{TimeSheet.sessions}" # Sessions
-    puts "Break Time: #{@timesheet.break_time}, Total: #{TimeSheet.break_time}" # Break Times
+    puts "Break Time Today: #{@timesheet.break_time}" # Break Times
     puts
     puts @timer.time_to_s if @timer # Timer String
   end
