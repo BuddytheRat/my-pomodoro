@@ -7,15 +7,16 @@ my own pomodoro timer with extra features.
 Current Features:
 - Variable timer length.
 - Alarm sound. (.wav file not included in repo)
-- Percentage complete.
 - Timer runs on separate thread. 
 - Pause and resume.
-- Pick new timer at timer end. Either a break or another pomodoro.
 - Keep track of Pomodoros completed.
 - Keep track of breaks taken.
-- Enter in number of hours. Automatically divide into work and break periods with timers for each.
 - 5 minute break period for each pomodoro session. (5 minute warning sound.)
+- Tracks daily and total pomodoros and break time.
+- Saves time sheet to file.
 
 Planned Features:
-- Variable length breaks.
-- GUI
+- Pomodoro object.
+- See start and end times for each pomodoro.
+- See stats for the day/week/month/etc.
+- GUI?
