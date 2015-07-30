@@ -1,12 +1,24 @@
 class TimeSheet
+  require 'yaml'
   @@timesheets = Hash.new
   attr_reader :sessions, :break_time
   def initialize
     @initialized = Time.now
     #One TimeSheet Object per day.
-    @@timesheets[@initialized.strftime('%m-%d-%y')] ||= self
+    @@timesheets[@initialized.strftime('%m-%d-%y')] = self
     @sessions = 0 # Number of pomodoro sessions completed
     @break_time = 0 # Number of seconds of break time
+  end
+
+  def TimeSheet.load
+    data = File.open('timesheet.yaml', 'r') { |f| f.read }
+    @@timesheets = YAML.load(data)
+    puts @@timesheets
+  end
+
+  def TimeSheet.save
+    save = YAML.dump(@@timesheets)
+    File.open('timesheet.yaml', 'w') { |f| f.write(save) }
   end
 
   def TimeSheet.sessions

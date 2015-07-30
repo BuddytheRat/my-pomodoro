@@ -11,6 +11,7 @@ class Pomodoro
   end
 
   def load_timesheet
+    TimeSheet.load
     @timesheet = TimeSheet.today ? TimeSheet.today : TimeSheet.new
   end
 
@@ -45,7 +46,7 @@ class Pomodoro
       key = GetKey.getkey
       system('cls')
       display
-      save_state
+      TimeSheet.save
       if @in_session
         end_session if key == 'S'.ord || !@timer.running?
         @timer.pause if key == 'p'.ord
