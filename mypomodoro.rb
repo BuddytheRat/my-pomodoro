@@ -1,8 +1,8 @@
-class Pomodoro
-  require './timer'
-  require './breaktimer'
-  require './timesheet'
-  require './getkey'
+class MyPomodoro
+  require './mypomodoro/timer'
+  require './mypomodoro/breaktimer'
+  require './mypomodoro/timesheet'
+  require './mypomodoro/getkey'
 
 	def initialize
     @in_session = false
@@ -66,4 +66,4 @@ class Pomodoro
   end
 end
 
-pom = Pomodoro.new
+pom = MyPomodoro.new
