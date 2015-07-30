@@ -66,4 +66,4 @@ class Pomodoro
   end
 end
 
-pom = Pomodoro.new()
+pom = Pomodoro.new
