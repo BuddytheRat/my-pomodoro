@@ -47,7 +47,7 @@ class Timer
     @current_time < @end_time
   end
 
-  def time_to_s(seconds_float = remaining_time) #counts up instead of down
+  def time_to_s(seconds_float = remaining_time)
     seconds = (seconds_float % 60).to_i.to_s.rjust(2, '0')
     minutes = ((seconds_float / 60) % 60).to_i.to_s.rjust(2, '0')
     hours   = ((seconds_float / 3600) % 60).to_i.to_s.rjust(2, '0')
