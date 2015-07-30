@@ -13,7 +13,6 @@ class TimeSheet
   def TimeSheet.load
     data = File.open('timesheet.yaml', 'r') { |f| f.read }
     @@timesheets = YAML.load(data)
-    puts @@timesheets
   end
 
   def TimeSheet.save
