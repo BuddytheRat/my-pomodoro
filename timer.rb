@@ -2,15 +2,13 @@ class Timer
   require 'win32/sound'
   include Win32
 
-  def initialize(minutes, **args)
-    args[:warning] ||= false;
-
-    @warning = args[:warning]
+  def initialize(minutes)
+    @warning = true
 
     @minutes = minutes
     @seconds = @minutes * 60
 
-    @start_time = Time.new
+    @start_time = Time.now
     @current_time = Time.new
     @end_time = Time.new
   end
@@ -33,6 +31,14 @@ class Timer
     }
   end
 
+  def run_time
+    @current_time - @start_time
+  end
+
+  def remaining_time
+    @end_time - @current_time
+  end
+
   def minutes_left
     (@end_time - @current_time) / 60
   end
@@ -41,11 +47,12 @@ class Timer
     @current_time < @end_time
   end
 
-  def time_to_s
-    minutes = (((@end_time - @current_time) / 60) % 60).to_i.to_s.rjust(2, '0')
-    seconds = ((@end_time - @current_time) % 60).to_i.to_s.rjust(2, '0')
-    "#{minutes}:#{seconds}"
-  end    
+  def time_to_s(seconds_float = remaining_time) #counts up instead of down
+    seconds = (seconds_float % 60).to_i.to_s.rjust(2, '0')
+    minutes = ((seconds_float / 60) % 60).to_i.to_s.rjust(2, '0')
+    hours   = ((seconds_float / 3600) % 60).to_i.to_s.rjust(2, '0')
+    "#{hours}:#{minutes}:#{seconds}"
+  end   
 
   def percent
     "#{((Time.now - @start_time)/(@end_time - @start_time)*100).to_i}%"
@@ -70,5 +77,3 @@ class Timer
     @paused
   end
 end
-
-require './getkey'

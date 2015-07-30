@@ -1,87 +1,64 @@
 class Pomodoro
   require './timer'
-  require './getkey'
+  require './breaktimer'
   require './timesheet'
-	def initialize
-    puts '# of hours to work:'
-    work_hours = get_input
-    puts '# of hours available:'
-    available_hours = get_input(greater_than: work_hours)
-    @sessions = (work_hours / 0.5).to_i
-    @sessions_completed = 0
-    @break_sessions = ((available_hours - work_hours) / 0.5).to_i
-    @breaks_completed = 0
-    @running = false
-    @is_break = false
+  require './getkey'
 
+	def initialize
+    @in_session = false
+    load_timesheet
     run
   end
 
-  def get_input(**args)
-    args[:greater_than] ||= 1
-    input = gets.chomp.to_i
-    error = false
-    if input < args[:greater_than]
-        error = true
-        puts "Must be a number equal to or greater than #{args[:greater_than]}."
-    end
-    input = get_input if error
-    input
+  def load_timesheet
+    @timesheet = TimeSheet.today ? TimeSheet.today : TimeSheet.new
   end
 
-  def new_session(minutes, **args)
-    args[:is_break] ||= false
-    args[:warning] ||= false
-    @timer = Timer.new(minutes, warning: args[:warning])
+  def new_session(minutes)
+    @timesheet.add_break_time(@timer.run_time)
+    @timer = Timer.new(minutes)
     @timer.start
-    @is_break = args[:is_break]
-    @running = true
+    @in_session = true
   end
 
-  def sessions_string(sessions, completed)
-    completed_string = ("[x]" * ([completed, sessions].min))
-    uncompleted_string = ("[ ]" * ([sessions - completed, 0].max))
-    excess_string = (" x " * ([completed - sessions, 0].max))
-    completed_string + uncompleted_string + excess_string
+  def end_session
+    @timesheet.add_session
+    @timer.time_up
+    @timer = nil
+    @in_session = false
   end
 
-  def display_session_status
-    puts "Sessions:"
-    puts sessions_string(@sessions, @sessions_completed)
-    puts "Breaks:" if @break_sessions > 0
-    puts sessions_string(@break_sessions, @breaks_completed) if @break_sessions > 0
+  def display
+    ordinal = ['st', 'nd', 'rd', 'th'].each_with_index.find do |ord, i| 
+      i+1 == Time.now.mday % 10 || i+1 > 3
+    end
+    puts Time.now.strftime('%A, %-d' + ordinal[0] + ' of %B')
+    puts
+    puts "Sessions: #{@timesheet.sessions}, Total: #{TimeSheet.sessions}" # Sessions
+    puts "Break Time: #{@timesheet.break_time}, Total: #{TimeSheet.break_time}" # Break Times
+    puts
+    puts @timer.time_to_s if @timer # Timer String
   end
 
   def run
     loop do
       key = GetKey.getkey
       system('cls')
-      display_session_status
-      if @running
-        if !@timer.running?
-          @running = false
-          @is_break ? @breaks_completed += 1 : @sessions_completed += 1
-          next
-        end
-        puts
-        puts @timer.time_to_s
-        #### TIMER CONTROLS ####
-        @timer.time_up if key == 's'.ord && @timer.running?
-        @timer.pause if key == 'p'.ord && @timer.running?
+      display
+      save_state
+      if @in_session
+        end_session if key == 'S'.ord || !@timer.running?
+        @timer.pause if key == 'p'.ord
         @timer.start if key == 'r'.ord && @timer.paused?
-        next if key
       else
-        puts "Press '1' for break. Press '2' for pomodoro."
-        puts "Press 's' to remove completed session. Press 'b' to remove completed break."
-        puts "Hold shift to add, instead."
-        #### SESSION CONTROLS ####
-        new_session(30, is_break: true) if key == '1'.ord # New Break
-        new_session(30, warning: true) if key == '2'.ord  # New Session
+        if !@timer
+          @timer = BreakTimer.new
+          @timer.start
+        end
+        new_session(30) if key == '1'.ord
+        @timesheet.remove_session if key == '-'.ord
+        @timesheet.add_session if key == '+'.ord
       end
-      @sessions_completed = [@sessions_completed - 1, 0].max if key == 's'.ord
-      @sessions_completed = @sessions_completed + 1 if key == 'S'.ord 
-      @breaks_completed = [@breaks_completed - 1, 0].max if key == 'b'.ord
-      @breaks_completed = @breaks_completed + 1 if key == 'B'.ord
       next if key
       sleep 0.2
     end

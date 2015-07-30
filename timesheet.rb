@@ -1,6 +1,6 @@
 class TimeSheet
   @@timesheets = Hash.new
-  #attr_reader :sessions, :break_time
+  attr_reader :sessions, :break_time
   def initialize
     @initialized = Time.now
     #One TimeSheet Object per day.
@@ -21,8 +21,16 @@ class TimeSheet
     break_time
   end
 
+  def TimeSheet.today
+    @@timesheets[Time.now.strftime('%m-%d-%y')]
+  end
+
   def add_session
     @sessions += 1
+  end
+
+  def remove_session
+    @sessions = [@sessions - 1, 0].max
   end
 
   def add_break_time(time) # time is a float, acquired by subtracting two Time objects.
