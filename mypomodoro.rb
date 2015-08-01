@@ -2,6 +2,7 @@ class MyPomodoro
   require './mypomodoro/timer'
   require './mypomodoro/breaktimer'
   require './mypomodoro/timesheet'
+  require './mypomodoro/session'
   require './mypomodoro/getkey'
 
 	def initialize
@@ -18,12 +19,14 @@ class MyPomodoro
   def new_session(minutes)
     @timesheet.add_break_time(@timer.run_time)
     @timer = Timer.new(minutes)
+    @session = Session.new
     @timer.start
     @in_session = true
   end
 
   def end_session
-    @timesheet.add_session
+    @session.end
+    @timesheet.add_session(@session)
     @timer.time_up
     @timer = nil
     @in_session = false
@@ -35,7 +38,7 @@ class MyPomodoro
     end
     puts Time.now.strftime('%A, %-d' + ordinal[0] + ' of %B')
     puts
-    puts "Sessions: #{@timesheet.sessions}, Total: #{TimeSheet.sessions}" # Sessions
+    puts "Sessions: #{@timesheet.sessions.size}, Total: #{TimeSheet.sessions.size}" # Sessions
     puts "Break Time Today: #{@timesheet.break_time}" # Break Times
     puts
     puts @timer.time_to_s if @timer # Timer String
@@ -61,7 +64,7 @@ class MyPomodoro
         @timesheet.add_session if key == '+'.ord
       end
       next if key
-      sleep 0.2
+      sleep 0.5
     end
   end
 end

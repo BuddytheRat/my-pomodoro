@@ -6,13 +6,17 @@ class TimeSheet
     @initialized = Time.now
     #One TimeSheet Object per day.
     @@timesheets[@initialized.strftime('%m-%d-%y')] = self
-    @sessions = 0 # Number of pomodoro sessions completed
+    @sessions = Array.new # Number of pomodoro sessions completed
     @break_time = 0 # Number of seconds of break time
   end
 
   def TimeSheet.load
-    data = File.open('timesheet.yaml', 'r') { |f| f.read }
-    @@timesheets = YAML.load(data)
+    if File.exist?('timesheet.yaml')
+      data = File.open('timesheet.yaml', 'r') { |f| f.read } 
+      @@timesheets = YAML.load(data)
+    else
+      false
+    end
   end
 
   def TimeSheet.save
@@ -21,9 +25,13 @@ class TimeSheet
   end
 
   def TimeSheet.sessions
-    sessions = 0
+    sessions = Array.new
     @@timesheets.values.each { |v| sessions += v.sessions }
     sessions
+  end
+
+  def TimeSheet.today
+    @@timesheets[Time.now.strftime('%m-%d-%y')]
   end
 
   def break_time
@@ -37,16 +45,12 @@ class TimeSheet
     "#{hours}:#{minutes}:#{seconds}"
   end 
 
-  def TimeSheet.today
-    @@timesheets[Time.now.strftime('%m-%d-%y')]
-  end
-
-  def add_session
-    @sessions += 1
+  def add_session(session)
+    @sessions << session
   end
 
   def remove_session
-    @sessions = [@sessions - 1, 0].max
+    @sessions.pop
   end
 
   def add_break_time(time) # time is a float, acquired by subtracting two Time objects.
