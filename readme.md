@@ -14,9 +14,8 @@ Current Features:
 - 5 minute break period for each pomodoro session. (5 minute warning sound.)
 - Tracks daily and total pomodoros and break time.
 - Saves time sheet to file.
+- See start and end times for each pomodoro.
 
 Planned Features:
-- Pomodoro object.
-- See start and end times for each pomodoro.
 - See stats for the day/week/month/etc.
 - GUI?
