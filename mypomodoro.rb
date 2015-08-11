@@ -67,7 +67,7 @@ class MyPomodoro
         @session_timer.pause if key == 'p'.ord
         resume_session if key == 'r'.ord && @session_timer.paused?
       else
-        new_session(0.06) if key == '1'.ord
+        new_session(25) if key == '1'.ord
         @timesheet.remove_session if key == '-'.ord
         @timesheet.add_session if key == '+'.ord
       end
