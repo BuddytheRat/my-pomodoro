@@ -18,17 +18,14 @@ class Timer
     @end_time = @start_time + @seconds
     @running = true
     @paused = false
-    Thread.new {
+    thr = Thread.new {
       while time_remains? && running?
         @current_time = Time.now if !@paused
-        if @warning && minutes_left <= 5.0
-          Sound.play('warning.wav')
-          @warning = false
-        end
         sleep 0.2
       end
-      time_up if running?
+      @running = false
     }
+    time_up if !running?
   end
 
   def run_time
@@ -61,7 +58,6 @@ class Timer
   def time_up
     puts "It's Over!"
     Sound.play('alarm.wav')
-    @running = false
   end
 
   def pause

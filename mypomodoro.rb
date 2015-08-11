@@ -43,6 +43,7 @@ class MyPomodoro
   end
 
   def display
+    #11st, 13rd
     ordinal = ['st', 'nd', 'rd', 'th'].each_with_index.find do |ord, i| 
       i+1 == Time.now.mday % 10 || i+1 > 3
     end
@@ -66,7 +67,7 @@ class MyPomodoro
         @session_timer.pause if key == 'p'.ord
         resume_session if key == 'r'.ord && @session_timer.paused?
       else
-        new_session(25) if key == '1'.ord
+        new_session(0.06) if key == '1'.ord
         @timesheet.remove_session if key == '-'.ord
         @timesheet.add_session if key == '+'.ord
       end
