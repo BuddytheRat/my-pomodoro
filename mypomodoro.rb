@@ -17,19 +17,29 @@ class MyPomodoro
   end
 
   def new_session(minutes)
-    @timesheet.add_break_time(@timer.run_time)
-    @timer = Timer.new(minutes)
+    end_break
+    @session_timer = Timer.new(minutes)
     @session = Session.new
-    @timer.start
+    @session_timer.start
     @in_session = true
+  end
+
+  def resume_session
+    end_break
+    @session_timer.start
   end
 
   def end_session
     @session.end
     @timesheet.add_session(@session)
-    @timer.time_up
-    @timer = nil
+    @session_timer.time_up
+    @session_timer = nil
     @in_session = false
+  end
+
+  def end_break
+    @timesheet.add_break_time(@break_timer.run_time)
+    @break_timer = nil
   end
 
   def display
@@ -38,10 +48,11 @@ class MyPomodoro
     end
     puts Time.now.strftime('%A, %-d' + ordinal[0] + ' of %B')
     puts
-    puts "Sessions: #{@timesheet.sessions.size}, Total: #{TimeSheet.sessions.size}" # Sessions
-    puts "Break Time Today: #{@timesheet.break_time}" # Break Times
+    puts "Sessions: #{@timesheet.sessions.size}, Total: #{TimeSheet.sessions.size}"
+    puts "Break Time Today: #{@timesheet.break_time}"
     puts
-    puts @timer.time_to_s if @timer # Timer String
+    puts "Current Session: " + @session_timer.time_to_s if @session_timer
+    puts "Taking Break: " + @break_timer.time_to_s if @break_timer
   end
 
   def run
@@ -51,18 +62,19 @@ class MyPomodoro
       display
       TimeSheet.save
       if @in_session
-        end_session if key == 'S'.ord || !@timer.running?
-        @timer.pause if key == 'p'.ord
-        @timer.start if key == 'r'.ord && @timer.paused?
+        end_session if key == 'S'.ord || !@session_timer.running?
+        @session_timer.pause if key == 'p'.ord
+        resume_session if key == 'r'.ord && @session_timer.paused?
       else
-        if !@timer
-          @timer = BreakTimer.new
-          @timer.start
-        end
-        new_session(30) if key == '1'.ord
+        new_session(25) if key == '1'.ord
         @timesheet.remove_session if key == '-'.ord
         @timesheet.add_session if key == '+'.ord
       end
+      if (!@session_timer || @session_timer.paused?) && !@break_timer
+        @break_timer = BreakTimer.new
+        @break_timer.start
+      end
+      break if key == 'Q'.ord
       next if key
       sleep 0.5
     end
